@@ -8,12 +8,14 @@ use App\Interfaces\ParserStrategyInterface;
 use App\Models\Site;
 use App\Models\Size;
 use App\Traits\CrawlerTrait;
+use App\Traits\GuzzleTrait;
 use Goutte\Client;
 use Symfony\Component\HttpClient\HttpClient;
 
 abstract class BaseParserStrategy implements ParserStrategyInterface
 {
     use CrawlerTrait;
+    use GuzzleTrait;
 
     protected  $url;
 

@@ -13,10 +13,11 @@ trait CrawlerTrait
     /**
      * @return \Symfony\Component\DomCrawler\Crawler
      */
-    protected function getCrawler()
+    protected function getCrawler($site = null)
     {
+        $site = $site ?? $this->url;
         $client = new Client(HttpClient::create(['timeout' => 60]));
-        $crawler = $client->request('GET', $this->url);
+        $crawler = $client->request('GET', $site);
 
         return $crawler;
     }
