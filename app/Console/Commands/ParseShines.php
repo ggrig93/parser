@@ -1,16 +1,15 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Console\Commands;
 
 use App\Services\ParserRunService;
 use App\Strategy\Parser\AstaworldStrategy;
 use App\Strategy\Parser\TypesSrbStrategy;
-use Illuminate\Http\Request;
+use Illuminate\Console\Command;
 use Illuminate\Support\Arr;
 
-class ParserController extends Controller
+class ParseShines extends Command
 {
-
 
     /**
      * @var array
@@ -29,10 +28,36 @@ class ParserController extends Controller
     ];
 
 
-    public function index(Request $request)
-    {
-        $site = $request->site;
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'parse:shines  {site}';
 
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Parse shines from site or multiple sites';
+
+    /**
+     * Create a new command instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        parent::__construct();
+    }
+
+    /**
+     *
+     */
+    public function handle()
+    {
+        $site = $this->argument('site');
         if($site && Arr::get( $this->sites, $site )) {
             $className = $this->sites[$site];
             $parserService =  new ParserRunService(new $className());
@@ -46,7 +71,5 @@ class ParserController extends Controller
             });
         }
 
-
     }
-
 }

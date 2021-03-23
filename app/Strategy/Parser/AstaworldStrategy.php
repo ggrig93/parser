@@ -4,73 +4,103 @@
 namespace App\Strategy\Parser;
 
 
+use App\Models\Size;
+
 class AstaworldStrategy extends BaseParserStrategy
 {
 
-//    protected  $url = "https://www.astaworld.ru/tyres?availability=0&group%5B%5D=90&set%5B%5D=0&b%5B%5D=185&h%5B%5D=65&d%5B%5D=R15&brand%5B%5D=MICHELIN";
-    protected $url = "https://www.astaworld.ru/tyres?availability=0&group%5B%5D=90&set%5B%5D=4&b%5B%5D=&h%5B%5D=&d%5B%5D=&brand%5B%5D=";
+    const SITE = "astaworld.ru/tyres";
+
+    protected  $url = "https://www.astaworld.ru/tyres?availability=0&group%5B%5D=90&set%5B%5D=0&b%5B%5D=185&h%5B%5D=65&d%5B%5D=R15&brand%5B%5D=MICHELIN";
+//    protected $url = "https://www.astaworld.ru/tyres?availability=0&group%5B%5D=90&set%5B%5D=4&b%5B%5D=&h%5B%5D=&d%5B%5D=&brand%5B%5D=";
 
     protected $productSelector = '.wrap-ext';
 
     protected $paginatorSelector = '.result-block-wrapper nav#paginator';
 
+    protected $shineFilter = 'span[data-name="groups"]';
+
+    protected $filterInputNames = [
+      'group' =>  'group',
+      'width' =>  'b',
+      'profile' =>  'h',
+      'brand' =>  'brand',
+      'diameter' =>  'd',
+    ];
+
+    protected $diameterStartPrefix = 'R';
+
+    /**
+     *
+     */
     public function run()
     {
         // TODO: Implement run() method.
-
-//        try {
-        $sizes = $this->getSizes();
-        $sizes = $this->getTires();
-//        } catch (\Exception $e) {
-//            dd($e);
-//        }
-
-    }
-
-    public function getTires()
-    {
         $crawler = $this->getCrawler();
+        $this->getSizes();
 
+        $shineFilter = $crawler->filter($this->shineFilter)->filter('input')->each(function ($node, $key) use ($crawler) {
+            $filter = $node->attr('value');
 
-        $values[] = $this->getPageTires($crawler);
+            $this->url = modify_url_query($crawler->getUri(), [$this->filterInputNames['group'] => [$filter] ]);
 
-        $this->paginateTires($crawler, $values);
-        dd($values);
-    }
+            foreach ($this->sizes as $size) {
+                $sizes = $this->setUrlSizes($size);
 
-    public function paginateTires($crawler,  $values)
-    {
-        $client = $this->getCrawlerClient();
+                $this->url = modify_url_query($this->url, $sizes);
+                $this->activeSize = $size;
+                $this->getTires();
 
-        $nextPage = $crawler->filter($this->paginatorSelector)
-            ->first()->selectLink('1')->nextAll()->first();
-
-        if ($nextPage->count()) {
-            $link = $crawler->filter($this->paginatorSelector)->first()
-                ->selectLink($nextPage->text())->link();
-
-            $crawler = $client->click($link);
-
-            $values[] = $this->getPageTires($crawler);
-
-            if(intval($nextPage->text()) < 5) {
-                $this->paginateTires($crawler, $values);
             }
-        }
-        return $values;
+
+        });
     }
 
+    /**
+     * @param $crawler
+     * @return array
+     */
     public function getPageTires($crawler)
     {
         $pageVals = [];
-        $crawler->filter('.wrap-ext')->each(function ($node) use (&$values) {
-            $values[] = [
-                "name" => $node->filter('.title')->text(),
-                "count" => $node->filter('span.nowrap acronym')->last()->text()
+        $crawler->filter('.wrap-ext')->each(function ($node) use (&$pageVals) {
+            $pageVals[] = [
+                "site_id"      => $this->site['id'],
+                "size_id"      => $this->activeSize['id'],
+                "name"         => $node->filter('.title')->text(),
+                "availability" => $node->filter('span.nowrap acronym')->last()->text()
             ];
-
         });
 
         return $pageVals;
+    }
+
+    /**
+     * @param $size
+     * @return array
+     */
+    protected function setUrlSizes($size)
+    {
+        $form = [
+            $this->filterInputNames['width'] => [ $size['width'] ],
+            $this->filterInputNames['profile'] => [ $size['profile'] ],
+            $this->filterInputNames['diameter'] => [$this->diameterStartPrefix. $size['diameter'] ],
+        ];
+
+        return $form;
+    }
+
+    /**
+     * @param $tires
+     */
+    public function saveTires($tires)
+    {
+        try {
+            $this->site->shines()->createMany($tires);
+
+        } catch (\Exception $e) {
+            dd($e);
+        }
+
     }
 }
