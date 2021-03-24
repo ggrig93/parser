@@ -20,6 +20,8 @@ class AstaworldStrategy extends BaseParserStrategy
 
     protected $shineFilter = 'span[data-name="groups"]';
 
+    protected $seasonFilters = [90, 92];
+
     protected $filterInputNames = [
       'group' =>  'group',
       'width' =>  'b',
@@ -41,7 +43,9 @@ class AstaworldStrategy extends BaseParserStrategy
 
         $shineFilter = $crawler->filter($this->shineFilter)->filter('input')->each(function ($node, $key) use ($crawler) {
             $filter = $node->attr('value');
-
+            if(!in_array( $filter, $this->seasonFilters)) {
+              return;
+            }
             $this->url = modify_url_query($crawler->getUri(), [$this->filterInputNames['group'] => [$filter] ]);
 
             foreach ($this->sizes as $size) {
@@ -90,17 +94,5 @@ class AstaworldStrategy extends BaseParserStrategy
         return $form;
     }
 
-    /**
-     * @param $tires
-     */
-    public function saveTires($tires)
-    {
-        try {
-            $this->site->shines()->createMany($tires);
 
-        } catch (\Exception $e) {
-            dd($e);
-        }
-
-    }
 }

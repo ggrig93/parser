@@ -70,6 +70,6 @@ class ParseShines extends Command
                 $parserService->run();
             });
         }
-
+        exit('Done');
     }
 }

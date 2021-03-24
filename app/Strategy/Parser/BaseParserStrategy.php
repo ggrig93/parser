@@ -116,7 +116,20 @@ abstract class BaseParserStrategy implements ParserStrategyInterface
 
         return $form;
     }
-//    public abstract function saveTires($tires);
 
+//    public abstract function saveTires($tires);
+    /**
+     * @param $tires
+     */
+    public function saveTires($tires)
+    {
+        try {
+            $this->site->shines()->createMany($tires);
+
+        } catch (\Exception $e) {
+            dd($e);
+        }
+
+    }
 }
 

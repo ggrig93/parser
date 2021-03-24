@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\ParserRunService;
 use App\Strategy\Parser\AstaworldStrategy;
 use App\Strategy\Parser\TypesSrbStrategy;
+use App\Strategy\Parser\TyrangoStrategy;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 
@@ -18,7 +19,7 @@ class ParserController extends Controller
     private $sites = [
         "astaworld.ru/tyres" => AstaworldStrategy::class,
         "tyres.spb.ru" => TypesSrbStrategy::class,
-//        "turango.ru/tires/" => AstaworldStrategy::class,
+        "turango.ru/tires" => TyrangoStrategy::class,
 //        "autopartner-perm.ru/" => AstaworldStrategy::class,
 //        "vianor54.ru" => AstaworldStrategy::class,
 //        "mirkoles-nk.ru/" => AstaworldStrategy::class,
